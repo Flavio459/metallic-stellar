@@ -24,8 +24,9 @@ class HuginnBrain:
         # Here, we simulate the output of that process: a structured Spec.
         
         # Example logic simulation for HVAC request
-        if "PMOC" in user_request or "HVAC" in user_request:
-            if "hospital" in user_request.lower():
+        req_lower = user_request.lower()
+        if any(w in req_lower for w in ["pmoc", "hvac", "ac ", "climatiz", "server", "servidor", "refrig", "cinema"]):
+            if "hospital" in req_lower:
                 return self._reason_hospital(user_request)
             else:
                 return self._reason_hvac(user_request)
