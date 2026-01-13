@@ -1,0 +1,13 @@
+# Core Dependencies
+owlready2>=0.30
+gurobipy
+colorama
+torch
+numpy
+pandas
+
+# Local Package (Installed in editable mode usually, but for cloud we might need explicit path or setup.py)
+# For now, we rely on the repo structure.
+
+# Dev Tools
+pytest
