@@ -1,0 +1,59 @@
+name: Build Dist and upload to PyPi from the main branch
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          ref: "main"
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          body: |
+            Changes in this Release
+            - To be provided manually later
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Generate requirements.txt and requirements-dev.txt
+        run: |
+          # Runtime requirements (no dev groups)
+          uv export --format requirements-txt --no-dev --output-file requirements.txt
+          # Dev requirements = runtime + dev extra
+          uv export --format requirements-txt --extra dev --output-file requirements-dev.txt
+
+      - name: Ensure MANIFEST.in includes requirements files
+        run: |
+          if [ -f MANIFEST.in ]; then
+            grep -qF "include requirements.txt" MANIFEST.in || echo "include requirements.txt" >> MANIFEST.in
+            grep -qF "include requirements-dev.txt" MANIFEST.in || echo "include requirements-dev.txt" >> MANIFEST.in
+          else
+            printf "include requirements.txt\ninclude requirements-dev.txt\n" > MANIFEST.in
+          fi
+          echo "MANIFEST.in contents:"
+          cat MANIFEST.in
+
+      - name: Build distribution
+        run: uv build
+
+      - name: Upload to PyPI
+        run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
